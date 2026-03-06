@@ -1,6 +1,6 @@
 module Facera
   class Configuration
-    attr_accessor :base_path, :version, :dashboard, :generate_docs
+    attr_accessor :base_path, :version, :dashboard, :generate_docs, :introspection
     attr_reader :facet_paths, :disabled_facets, :authentication_handlers, :middleware_handlers
 
     def initialize
@@ -8,6 +8,7 @@ module Facera
       @version = 'v1'
       @dashboard = true
       @generate_docs = true
+      @introspection = true
       @facet_paths = {}
       @disabled_facets = []
       @authentication_handlers = {}

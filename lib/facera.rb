@@ -15,6 +15,9 @@ require_relative "facera/executor"
 require_relative "facera/grape"
 require_relative "facera/configuration"
 require_relative "facera/loader"
+require_relative "facera/introspection"
+require_relative "facera/openapi_generator"
+require_relative "facera/introspection_api"
 require_relative "facera/auto_mount"
 
 # Load Rails integration if Rails is present

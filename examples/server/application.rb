@@ -9,25 +9,8 @@ module PaymentAPI
         use Rack::Reloader, 0 if ENV['RACK_ENV'] == 'development'
         use Rack::CommonLogger
 
-        # Auto-mount all Facera facets
+        # Auto-mount all Facera facets and introspection API
         Facera.auto_mount!(self)
-
-        # Root endpoint with API information
-        map '/' do
-          run lambda { |env|
-            [200, {'Content-Type' => 'application/json'}, [{
-              name: 'Facera Payment API',
-              version: Facera::VERSION,
-              facets: Facera::Registry.facets.keys,
-              endpoints: {
-                root: '/',
-                external_health: '/api/v1/health',
-                internal_health: '/api/internal/v1/health',
-                operator_health: '/api/operator/v1/health'
-              }
-            }.to_json]]
-          }
-        end
       end
     end
   end

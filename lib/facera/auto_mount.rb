@@ -13,6 +13,7 @@ module Facera
       log_header
       discover_definitions
       mount_facets
+      mount_introspection if @config.introspection
       mount_dashboard if @config.dashboard
       log_summary
       @mounted_facets
@@ -74,10 +75,22 @@ module Facera
       end
     end
 
+    def mount_introspection
+      path = "#{@config.base_path}/facera"
+      api = IntrospectionAPI
+
+      mount_api(api, path)
+
+      @logger.info "\n📚 Introspection API:"
+      @logger.info "  ✓ Mounted at #{path}"
+      @logger.info "  • #{path}/introspect - Full introspection"
+      @logger.info "  • #{path}/openapi/:facet - OpenAPI specs"
+    end
+
     def mount_dashboard
       # Dashboard will be implemented in a future phase
       # For now, just log that it would be mounted
-      @logger.info "\n  Dashboard: #{@config.base_path}/facera (coming soon)"
+      @logger.info "\n🎨 Dashboard: #{@config.base_path}/facera/ui (coming soon)"
     end
 
     def log_summary
