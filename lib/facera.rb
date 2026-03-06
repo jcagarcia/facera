@@ -11,7 +11,14 @@ require_relative "facera/field_visibility"
 require_relative "facera/capability_access"
 require_relative "facera/facet"
 require_relative "facera/dsl"
+require_relative "facera/executor"
+require_relative "facera/grape"
 
 module Facera
   class Error < StandardError; end
+
+  # Convenience method to create APIs
+  def self.api_for(facet_name)
+    Grape::APIGenerator.for_facet(facet_name)
+  end
 end
