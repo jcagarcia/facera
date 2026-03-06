@@ -1,0 +1,23 @@
+# <%= class_name %> Facet
+Facera.define_facet(:<%= file_name %>, core: :<%= core_name %>) do
+  description "<%= class_name %> API"
+
+  # Control field visibility
+  # expose :<%= core_name.singularize %> do
+  #   fields :id, :name, :created_at
+  #   # hide :sensitive_field
+  #   # alias_field :created_at, as: :createdAt
+  # end
+
+  # Control capability access
+  # allow_capabilities :create_<%= core_name.singularize %>, :get_<%= core_name.singularize %>, :list_<%= core_name %>
+  # deny_capabilities :delete_<%= core_name.singularize %>
+
+  # Add scoping
+  # scope :list_<%= core_name %> do
+  #   { user_id: current_user.id }
+  # end
+
+  # Set error verbosity
+  error_verbosity :minimal
+end

@@ -13,6 +13,12 @@ require_relative "facera/facet"
 require_relative "facera/dsl"
 require_relative "facera/executor"
 require_relative "facera/grape"
+require_relative "facera/configuration"
+require_relative "facera/loader"
+require_relative "facera/auto_mount"
+
+# Load Rails integration if Rails is present
+require_relative "facera/railtie" if defined?(Rails)
 
 module Facera
   class Error < StandardError; end

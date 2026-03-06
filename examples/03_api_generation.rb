@@ -2,7 +2,10 @@
 # Phase 3: Grape API Generation
 # Demonstrates automatic REST API generation from Facera DSL
 
-require_relative 'server/payment_api'
+require_relative '../lib/facera'
+require_relative 'server/cores/payment_core'
+require_relative 'server/facets/external_facet'
+require_relative 'server/facets/internal_facet'
 
 puts "=" * 80
 puts "Phase 3: Grape API Generation"

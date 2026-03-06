@@ -1,0 +1,49 @@
+# <%= class_name %> Core
+Facera.define_core(:<%= file_name %>) do
+  # Define your entity
+  entity :<%= entity_name %> do
+    attribute :id, :uuid, immutable: true
+    attribute :created_at, :timestamp, immutable: true
+    attribute :updated_at, :timestamp
+
+    # Add your attributes here
+    # attribute :name, :string, required: true
+    # attribute :status, :enum, values: [:active, :inactive]
+  end
+
+  # Define your invariants (business rules)
+  # invariant :example_rule, description: "Example invariant" do
+  #   # Your validation logic
+  #   true
+  # end
+
+  # Define your capabilities
+  capability :create_<%= entity_name %>, type: :create do
+    entity :<%= entity_name %>
+    requires :id
+    # Add required params
+    # optional :name
+  end
+
+  capability :get_<%= entity_name %>, type: :get do
+    entity :<%= entity_name %>
+    requires :id
+  end
+
+  capability :list_<%= file_name %>, type: :list do
+    entity :<%= entity_name %>
+    optional :limit, :offset
+    # filterable :status
+  end
+
+  capability :update_<%= entity_name %>, type: :update do
+    entity :<%= entity_name %>
+    requires :id
+    # optional :name
+  end
+
+  capability :delete_<%= entity_name %>, type: :delete do
+    entity :<%= entity_name %>
+    requires :id
+  end
+end

@@ -10,6 +10,7 @@ Each example builds on the previous one, showing the progressive development of 
 01_core_dsl.rb         → Phase 1: Core semantic definition
 02_facet_system.rb     → Phase 2: Multiple facets from one core
 03_api_generation.rb   → Phase 3: Auto-generated REST APIs
+04_auto_mounting.rb    → Phase 4: Auto-mounting system
 server/                → Runnable HTTP server
 ```
 
@@ -58,6 +59,23 @@ ruby 03_api_generation.rb
 - Capability-to-endpoint mapping
 - Route comparison across facets
 
+### Phase 4: Auto-Mounting
+
+Shows how Facera automatically discovers and mounts all facets with zero configuration.
+
+```bash
+ruby 04_auto_mounting.rb
+```
+
+**Shows:**
+- Zero-config auto-mounting
+- Custom path configuration
+- Facet enabling/disabling
+- Rails integration (Railtie)
+- Rack/Sinatra integration
+- Per-facet authentication
+- Configuration DSL
+
 ### Running the Server
 
 Launch a live HTTP server with multiple facet APIs:
@@ -71,13 +89,13 @@ Then test the APIs:
 
 ```bash
 # Check health
-curl http://localhost:9292/external/health
+curl http://localhost:9292/api/v1/health
 
 # List payments (external API)
-curl http://localhost:9292/external/payments
+curl http://localhost:9292/api/v1/payments
 
 # Create a payment
-curl -X POST http://localhost:9292/external/payments \
+curl -X POST http://localhost:9292/api/v1/payments \
   -H 'Content-Type: application/json' \
   -d '{
     "amount": 100.0,
@@ -87,22 +105,31 @@ curl -X POST http://localhost:9292/external/payments \
   }'
 
 # Confirm payment (internal API only - not available in external)
-curl -X POST http://localhost:9292/internal/payments/{id}/confirm
+curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/confirm
 ```
 
 ## Server Structure
 
 ```
 server/
-├── config.ru        # Rack configuration (mounts APIs)
-└── payment_api.rb   # Shared DSL definitions (core + facets)
+├── config.ru            # Rack server (just 38 lines!)
+├── config/
+│   └── facera.rb       # Facera configuration
+├── cores/
+│   └── payment_core.rb # Domain model
+└── facets/
+    ├── external_facet.rb
+    ├── internal_facet.rb
+    └── operator_facet.rb
 ```
 
-**Why separate?**
-- `payment_api.rb` contains reusable DSL definitions
-- `config.ru` handles HTTP routing and server configuration
-- Clean separation of concerns
-- Easy to test definitions independently
+**Convention over configuration:**
+- `config.ru` - Just loads config and calls `Facera.auto_mount!`
+- `config/facera.rb` - All configuration in one place
+- `cores/` - Drop files here, auto-discovered!
+- `facets/` - Drop files here, auto-discovered!
+- **No manual requires needed** - Facera finds everything automatically
+- Zero boilerplate
 
 ## Key Concepts Demonstrated
 
