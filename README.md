@@ -567,7 +567,7 @@ end
 📦 Loading cores...
   ✓ payment_core
   ✓ user_core
-🎯 Loading facets...
+🎭 Loading facets...
   ✓ external_facet
   ✓ internal_facet
   ✓ operator_facet
@@ -584,7 +584,9 @@ end
 📚 Introspection API:
   ✓ Mounted at /api/facera
   • /api/facera/introspect - Full introspection
-  • /api/facera/openapi/:facet - OpenAPI specs
+  • /api/facera/cores - All cores
+  • /api/facera/facets - All facets
+  • /api/facera/openapi - OpenAPI specs
 
 ================================================================================
 ✨ Facera ready! 3 facets mounted
@@ -673,15 +675,15 @@ Facera provides powerful introspection capabilities:
 GET /api/facera/introspect
 
 # Inspect cores
-GET /api/facera/introspect/cores
-GET /api/facera/introspect/cores/:name
+GET /api/facera/cores
+GET /api/facera/cores/:name
 
 # Inspect facets
-GET /api/facera/introspect/facets
-GET /api/facera/introspect/facets/:name
+GET /api/facera/facets
+GET /api/facera/facets/:name
 
 # Mounted configuration
-GET /api/facera/introspect/mounted
+GET /api/facera/mounted
 ```
 
 ### OpenAPI Generation
@@ -1059,7 +1061,6 @@ Inspired by the need for consistent multi-audience APIs.
 - 📚 [Documentation](https://github.com/yourusername/facera/wiki)
 - 💬 [Discussions](https://github.com/yourusername/facera/discussions)
 - 🐛 [Issues](https://github.com/yourusername/facera/issues)
-- 📧 Email: support@facera.io
 
 ---
 

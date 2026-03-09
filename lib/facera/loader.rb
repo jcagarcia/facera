@@ -30,7 +30,7 @@ module Facera
       facet_files = discover_files('facets')
 
       if facet_files.any?
-        @logger.info "🎯 Loading facets..."
+        @logger.info "🎭 Loading facets..."
         facet_files.each do |file|
           require file
           @logger.info "  ✓ #{File.basename(file, '.rb')}"

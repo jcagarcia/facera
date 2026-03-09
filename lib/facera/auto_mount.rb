@@ -58,6 +58,20 @@ module Facera
       end
     end
 
+    def mount_introspection
+      path = "#{@config.base_path}/facera"
+      api = IntrospectionAPI
+
+      mount_api(api, path)
+
+      @logger.info "\n📚 Introspection API:"
+      @logger.info "  ✓ Mounted at #{path}"
+      @logger.info "  • #{path}/introspect - Full introspection"
+      @logger.info "  • #{path}/cores - All cores"
+      @logger.info "  • #{path}/facets - All facets"
+      @logger.info "  • #{path}/openapi - OpenAPI specs"
+    end
+
     def mount_api(api, path)
       if defined?(Rails)
         Rails.application.routes.draw do
@@ -73,18 +87,6 @@ module Facera
           '/' => @app
         )
       end
-    end
-
-    def mount_introspection
-      path = "#{@config.base_path}/facera"
-      api = IntrospectionAPI
-
-      mount_api(api, path)
-
-      @logger.info "\n📚 Introspection API:"
-      @logger.info "  ✓ Mounted at #{path}"
-      @logger.info "  • #{path}/introspect - Full introspection"
-      @logger.info "  • #{path}/openapi/:facet - OpenAPI specs"
     end
 
     def mount_dashboard
