@@ -164,18 +164,18 @@ curl http://localhost:9292/api/facera/openapi/external
 
 ## Documentation
 
-Comprehensive documentation available in the [wiki](wiki/):
+Comprehensive documentation available in the [wiki](https://github.com/jcagarcia/facera/wiki):
 
-- **[Core Concepts](wiki/Core-Concepts.md)** - Understanding cores, facets, and projections
-- **[Defining Cores](wiki/Defining-Cores.md)** - Entities, capabilities, and invariants
-- **[Defining Facets](wiki/Defining-Facets.md)** - Field visibility and capability access
-- **[API Generation](wiki/API-Generation.md)** - Auto-generated REST endpoints
-- **[Auto-Mounting](wiki/Auto-Mounting.md)** - Convention-based discovery
-- **[Configuration](wiki/Configuration.md)** - Authentication, paths, and feature flags
-- **[Introspection](wiki/Introspection.md)** - Runtime introspection and OpenAPI
-- **[Deployment](wiki/Deployment.md)** - Production deployment guides
-- **[Architecture](wiki/Architecture.md)** - Design principles and framework integration
-- **[Examples](wiki/Examples.md)** - Complete working examples
+- **[Core Concepts](https://github.com/jcagarcia/facera/wiki/Core-Concepts)** - Understanding cores, facets, and projections
+- **[Defining Cores](https://github.com/jcagarcia/facera/wiki/Defining-Cores)** - Entities, capabilities, and invariants
+- **[Defining Facets](https://github.com/jcagarcia/facera/wiki/Defining-Facets)** - Field visibility and capability access
+- **[API Generation](https://github.com/jcagarcia/facera/wiki/API-Generation)** - Auto-generated REST endpoints
+- **[Auto-Mounting](https://github.com/jcagarcia/facera/wiki/Auto-Mounting)** - Convention-based discovery
+- **[Configuration](https://github.com/jcagarcia/facera/wiki/Configuration)** - Authentication, paths, and feature flags
+- **[Introspection](https://github.com/jcagarcia/facera/wiki/Introspection)** - Runtime introspection and OpenAPI
+- **[Deployment](https://github.com/jcagarcia/facera/wiki/Deployment)** - Production deployment guides
+- **[Architecture](https://github.com/jcagarcia/facera/wiki/Architecture)** - Design principles and framework integration
+- **[Examples](https://github.com/jcagarcia/facera/wiki/Examples)** - Complete working examples
 
 ---
 
@@ -230,7 +230,7 @@ rackup -p 9292
 
 ## Contributing
 
-Contributions welcome! Please read [CONTRIBUTING.md](wiki/Contributing.md) for guidelines.
+Contributions welcome! Please read [CONTRIBUTING.md](https://github.com/jcagarcia/facera/wiki/Contributing) for guidelines.
 
 ```bash
 git clone https://github.com/yourusername/facera.git
