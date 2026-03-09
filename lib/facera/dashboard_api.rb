@@ -1,5 +1,6 @@
 require 'grape'
 require_relative 'introspection'
+require_relative 'openapi_generator'
 
 module Facera
   class DashboardAPI < ::Grape::API
@@ -698,28 +699,78 @@ module Facera
       end
     end
 
-    get '/' do
-      header 'Content-Type', 'text/html; charset=utf-8'
-      spa_shell
-    end
-
-    # Catch-all for client-side routes so deep links / reloads work
-    get '/facets' do
-      header 'Content-Type', 'text/html; charset=utf-8'
-      spa_shell
-    end
-
-    get '/facets/:name' do
-      header 'Content-Type', 'text/html; charset=utf-8'
-      spa_shell
+    # JSON API endpoints used by the dashboard SPA
+    get '/introspect' do
+      content_type 'application/json'
+      Facera::Introspection.inspect_all.to_json
     end
 
     get '/cores' do
-      header 'Content-Type', 'text/html; charset=utf-8'
-      spa_shell
+      content_type 'application/json'
+      Facera::Introspection.inspect_cores.to_json
     end
 
     get '/cores/:name' do
+      content_type 'application/json'
+      core = Facera::Introspection.inspect_core(params[:name].to_sym)
+      error!('Core not found', 404) unless core
+      core.to_json
+    end
+
+    get '/facets' do
+      content_type 'application/json'
+      Facera::Introspection.inspect_facets.to_json
+    end
+
+    get '/facets/:name' do
+      content_type 'application/json'
+      facet = Facera::Introspection.inspect_facet(params[:name].to_sym)
+      error!('Facet not found', 404) unless facet
+      facet.to_json
+    end
+
+    get '/audiences' do
+      content_type 'application/json'
+      Facera::Introspection.inspect_audiences.to_json
+    end
+
+    get '/mounted' do
+      content_type 'application/json'
+      Facera::Introspection.inspect_mounted.to_json
+    end
+
+    get '/openapi' do
+      content_type 'application/json'
+      Facera::OpenAPIGenerator.generate_all.to_json
+    end
+
+    get '/openapi/:name' do
+      name = params[:name]
+      accept = env['HTTP_ACCEPT'] || ''
+      if accept.include?('text/html')
+        header 'Content-Type', 'text/html; charset=utf-8'
+        base = Facera.configuration.base_path
+        swagger_ui("#{name} — OpenAPI", "#{base}/facera/openapi/#{name}.json")
+      else
+        content_type 'application/json'
+        begin
+          Facera::OpenAPIGenerator.for_facet(name.to_sym).to_json
+        rescue => e
+          error!(e.message, 404)
+        end
+      end
+    end
+
+    get '/openapi/:name.json' do
+      content_type 'application/json'
+      begin
+        Facera::OpenAPIGenerator.for_facet(params[:name].to_sym).to_json
+      rescue => e
+        error!(e.message, 404)
+      end
+    end
+
+    get '/' do
       header 'Content-Type', 'text/html; charset=utf-8'
       spa_shell
     end
@@ -734,11 +785,5 @@ module Facera
       spa_shell
     end
 
-    get '/openapi/:name' do
-      header 'Content-Type', 'text/html; charset=utf-8'
-      base = Facera.configuration.base_path
-      name = params[:name]
-      swagger_ui("#{name} — OpenAPI", "#{base}/facera/openapi/#{name}")
-    end
   end
 end

@@ -5,15 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [0.2.0] - 2026-03-09
+## [0.2.0] - Unreleased
 
 ### Added
 
 #### Audience-Grouped APIs
 - **Multi-core audience grouping** — facets sharing the same audience name across different cores are now automatically merged into a single mounted API
-  - `define_facet(:public, core: :payment)` + `define_facet(:public, core: :refund)` → one API at `/api/public/v1` serving `/payments` and `/refunds`
+  - `define_facet(:public, core: :payment)` + `define_facet(:public, core: :refund)` → one API at `/public/api/v1` serving `/payments` and `/refunds`
   - No configuration required; grouping happens by convention
 - **`Registry.facet_groups`** — new method returning facets grouped by audience name (`{ public: [facet_payment, facet_refund], ... }`)
 - **`Grape::APIGenerator.for_group(audience_name, facets)`** — generates a single merged Grape API class from multiple facets across different cores
@@ -36,10 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Facet DSL** — `define_facet` signature now requires `core:` keyword: `define_facet(:audience_name, core: :core_name)`; the audience name is the facet name (no more per-core suffixes)
 - **Registry storage** — facets are stored internally under composite keys `:"audience:core"` (e.g. `:"public:payment"`) to avoid collisions; external lookups by audience name still work
 - **`auto_mount.rb`** — now iterates `Registry.facet_groups` instead of individual facets, mounting one Grape API per audience
-- **`configuration.rb`** — `default_path_for` simplified to `/{audience}/{version}` for all audience names; removed hardcoded special-casing for `:external`, `:internal`, `:operator`
+- **`configuration.rb`** — `default_path_for` updated to `/{audience}/api/{version}` for all audience names; removed hardcoded special-casing for `:external`, `:internal`, `:operator`
 - **Health endpoint** — response now returns `audience` and `cores` array instead of `facet` and `core` to reflect the grouped model
 - **Startup log** — now shows audience count alongside facet count and lists contributing cores per mounted audience
 - **Examples** — example facets renamed to generic audience names (`public`, `internal`, `ops`) and restructured to one file per core (`payment_facets.rb`, `refund_facets.rb`) demonstrating the grouped model
+- **URL pattern** — auto-mounted facet paths now follow `/{audience}/api/{version}/{resource}` instead of `/api/{audience}/{version}/{resource}`. For example, `/public/api/v1/payments` replaces `/api/public/v1/payments`. The default `base_path` is now `''` (empty); `base_path` can still be set for custom prefixes.
 
 ### Fixed
 
@@ -48,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`inspect_facet`** — fixed lookup to scan by audience name when composite key not found
 - **`Facet#visible_fields_for`** — fixed `nil` guard when entity is not found in core
 - **Dashboard `badgeList`** — fixed crash when `visible_fields` is `"all"` (Ruby `:all` symbol serialized as JSON string); strings are no longer passed to `.map()`
+- **Startup log alignment** — removed leading `\n` from section headers (`📊 Found:`, `🚀 Mounting facets:`, `📚 Introspection API:`, `🎨 Dashboard:`) so they appear inline with their log timestamp instead of on a blank preceding line
 
 ### Breaking Changes
 
@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Facets are no longer keyed by a plain audience name in the registry; use `Registry.facet_groups[audience_name]` to retrieve all facets for an audience
 - `OpenAPIGenerator.new` now accepts an audience name (not a facet/composite key); raises if the audience is not found
 - Example facet files restructured: `external_facet.rb`, `internal_facet.rb`, `operator_facet.rb` replaced by `payment_facets.rb` and `refund_facets.rb`
+- Default URL pattern changed from `/api/{audience}/{version}` to `/{audience}/api/{version}`. Clients and configurations using the old paths must be updated.
+- `base_path` default changed from `'/api'` to `''`. Explicit `config.base_path = '/api'` is no longer needed for the standard convention.
 
 ### Migration Guide
 
@@ -69,7 +71,7 @@ Facera.define_facet(:external_refund, core: :refund) { ... }
 ```ruby
 Facera.define_facet(:public, core: :payment) { ... }
 Facera.define_facet(:public, core: :refund) { ... }
-# Automatically merged into one API at /api/public/v1
+# Automatically merged into one API at /public/api/v1
 # serving /payments and /refunds
 ```
 

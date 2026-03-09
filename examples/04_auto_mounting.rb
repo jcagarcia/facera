@@ -27,12 +27,11 @@ puts
 puts "2. Custom Configuration:"
 puts <<~CONFIG
    Facera.configure do |config|
-     config.base_path = '/api'
      config.version = 'v2'
 
      # Custom facet paths
-     config.facet_path :external, '/public/v2'
-     config.facet_path :internal, '/services/v2'
+     config.facet_path :external, '/external/api/v2'
+     config.facet_path :internal, '/internal/api/v2'
 
      # Disable specific facets
      config.disable_facet :agent
@@ -55,7 +54,6 @@ puts "Current Configuration:"
 puts "-" * 80
 
 config = Facera.configuration
-puts "  Base path: #{config.base_path}"
 puts "  Version: #{config.version}"
 puts "  Dashboard: #{config.dashboard ? 'enabled' : 'disabled'}"
 puts "  Generate docs: #{config.generate_docs ? 'enabled' : 'disabled'}"
@@ -83,9 +81,8 @@ puts "Example: Custom Path Configuration"
 puts "-" * 80
 
 Facera.configure do |config|
-  config.base_path = '/api'
-  config.facet_path :external, '/v2'
-  config.facet_path :internal, '/private/v2'
+  config.facet_path :external, '/external/api/v2'
+  config.facet_path :internal, '/internal/api/v2'
 end
 
 config = Facera.configuration

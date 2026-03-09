@@ -152,11 +152,6 @@ end
 # config.ru
 require 'facera'
 
-Facera.configure do |config|
-  config.base_path = '/api'
-  config.version = 'v1'
-end
-
 app = Rack::Builder.new do
   Facera.auto_mount!(self)
 end
@@ -174,20 +169,20 @@ rackup -p 9292
 
 ```bash
 # Public API (customer-facing) — /payments and /refunds
-curl http://localhost:9292/api/public/v1/payments
-curl -X POST http://localhost:9292/api/public/v1/payments \
+curl http://localhost:9292/public/api/v1/payments
+curl -X POST http://localhost:9292/public/api/v1/payments \
   -H 'Content-Type: application/json' \
   -d '{"amount": 100.0, "currency": "USD", ...}'
 
 # Internal API (service-to-service) — /payments and /refunds
-curl http://localhost:9292/api/internal/v1/payments/:id
+curl http://localhost:9292/internal/api/v1/payments/:id
 
 # Ops API (operators and support agents) — /payments and /refunds
-curl http://localhost:9292/api/ops/v1/payments/:id
+curl http://localhost:9292/ops/api/v1/payments/:id
 
 # Introspection
-curl http://localhost:9292/api/facera/introspect
-curl http://localhost:9292/api/facera/openapi/public
+curl http://localhost:9292/facera/introspect
+curl http://localhost:9292/facera/openapi/public
 ```
 
 ---
@@ -218,17 +213,17 @@ Facera auto-discovers everything by convention — no manual registration needed
 
 Facet paths are derived automatically from the audience name. Facets sharing the same audience name across cores are grouped into one mounted API:
 
-| Audience name   | Cores included    | Default path          | Resources              |
-|-----------------|-------------------|-----------------------|------------------------|
-| `public`    | payment + refund | `/api/public/v1`    | `/payments`, `/refunds` |
-| `internal`  | payment + refund | `/api/internal/v1`  | `/payments`, `/refunds` |
-| `ops`       | payment + refund | `/api/ops/v1`       | `/payments`, `/refunds` |
+| Audience name   | Cores included    | Default path              | Resources              |
+|-----------------|-------------------|---------------------------|------------------------|
+| `public`    | payment + refund | `/public/api/v1`      | `/payments`, `/refunds` |
+| `internal`  | payment + refund | `/internal/api/v1`    | `/payments`, `/refunds` |
+| `ops`       | payment + refund | `/ops/api/v1`         | `/payments`, `/refunds` |
 
 You can override any audience path explicitly if needed:
 
 ```ruby
 Facera.configure do |config|
-  config.facet_path :public, '/v2/public'  # custom override
+  config.facet_path :public, '/public/api/v2'  # custom override
 end
 ```
 

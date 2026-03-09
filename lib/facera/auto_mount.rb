@@ -32,14 +32,14 @@ module Facera
       loader = Loader.new(logger: @logger)
       loader.load_all!
 
-      @logger.info "\n📊 Found:"
+      @logger.info "📊 Found:"
       @logger.info "  Cores: #{Registry.cores.count}"
       @logger.info "  Adapters: #{AdapterRegistry.all.count}"
       @logger.info "  Facets: #{Registry.facets.count} (#{Registry.facet_groups.count} audiences)"
     end
 
     def mount_facets
-      @logger.info "\n🚀 Mounting facets:"
+      @logger.info "🚀 Mounting facets:"
 
       Registry.facet_groups.each do |audience_name, facets|
         next unless @config.facet_enabled?(audience_name)
@@ -67,7 +67,7 @@ module Facera
 
       mount_api(api, path)
 
-      @logger.info "\n📚 Introspection API:"
+      @logger.info "📚 Introspection API:"
       @logger.info "  ✓ Mounted at #{path}"
       @logger.info "  • #{path}/introspect - Full introspection"
       @logger.info "  • #{path}/cores - All cores"
@@ -97,7 +97,7 @@ module Facera
 
       mount_api(DashboardAPI, '/facera')
 
-      @logger.info "\n🎨 Dashboard:"
+      @logger.info "🎨 Dashboard:"
       @logger.info "  ✓ Mounted at /facera"
     end
 

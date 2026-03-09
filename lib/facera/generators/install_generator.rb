@@ -54,7 +54,7 @@ if defined?(Rails)
           say "\nNext steps:"
           say "  1. Generate a core:  rails g facera:core payment"
           say "  2. Generate a facet: rails g facera:facet external --core=payment"
-          say "  3. Start your server and visit /api/v1/health"
+          say "  3. Start your server and visit /{audience}/api/v1/health"
           say "\nDocumentation: https://github.com/jcagarcia/facera"
           say "=" * 70 + "\n"
         end

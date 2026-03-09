@@ -4,7 +4,7 @@ module Facera
     attr_reader :facet_paths, :disabled_facets, :authentication_handlers, :middleware_handlers
 
     def initialize
-      @base_path = '/api'
+      @base_path = ''
       @version = 'v1'
       @dashboard = true
       @generate_docs = true
@@ -53,15 +53,15 @@ module Facera
 
     # Derives a default path from the audience (facet group) name.
     #
-    # Pattern: /{audience}/{version}
+    # Pattern: /{audience}/api/{version}
     #
     # Examples:
-    #   :checkout  -> /checkout/v1
-    #   :ledger    -> /ledger/v1
-    #   :support   -> /support/v1
-    #   :claims    -> /claims/v1
+    #   :checkout  -> /checkout/api/v1
+    #   :ledger    -> /ledger/api/v1
+    #   :support   -> /support/api/v1
+    #   :claims    -> /claims/api/v1
     def default_path_for(facet_name)
-      "/#{facet_name}/#{@version}"
+      "/#{facet_name}/api/#{@version}"
     end
   end
 

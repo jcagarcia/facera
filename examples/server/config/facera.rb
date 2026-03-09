@@ -2,16 +2,13 @@
 # Configure Facera behavior and facet paths.
 #
 # Facet paths are OPTIONAL. Facets are identified by audience name and grouped
-# across cores. Paths are auto-derived as /{audience}/{version}:
+# across cores. Paths are auto-derived as /{audience}/api/{version}:
 #
-#   public   -> /api/public/v1    (serves /payments and /refunds resources)
-#   internal -> /api/internal/v1  (serves /payments and /refunds resources)
-#   ops      -> /api/ops/v1       (serves /payments and /refunds resources)
+#   public   -> /public/api/v1    (serves /payments and /refunds resources)
+#   internal -> /internal/api/v1  (serves /payments and /refunds resources)
+#   ops      -> /ops/api/v1       (serves /payments and /refunds resources)
 
 Facera.configure do |config|
-  # Base path prefix for all facet APIs
-  config.base_path = '/api'
-
   # API version — used in the default path convention
   config.version = 'v1'
 

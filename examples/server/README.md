@@ -47,12 +47,7 @@ All Facera configuration is in `config/facera.rb`:
 
 ```ruby
 Facera.configure do |config|
-  config.base_path = '/api'
   config.version = 'v1'
-
-  # Custom paths
-  config.facet_path :external, '/v1'
-  config.facet_path :internal, '/internal/v1'
 
   # Conditional features
   config.disable_facet :operator unless ENV['ENABLE_OPERATOR_API']
@@ -73,15 +68,15 @@ rackup -p 8080
 
 ### External API (Public)
 
-**Path:** `/api/v1`
+**Path:** `/external/api/v1`
 **Audience:** External clients, mobile apps, web browsers
 
 ```bash
 # Health check
-curl http://localhost:9292/api/v1/health
+curl http://localhost:9292/external/api/v1/health
 
 # Create payment
-curl -X POST http://localhost:9292/api/v1/payments \
+curl -X POST http://localhost:9292/external/api/v1/payments \
   -H 'Content-Type: application/json' \
   -d '{
     "amount": 100.0,
@@ -91,10 +86,10 @@ curl -X POST http://localhost:9292/api/v1/payments \
   }'
 
 # Get payment (limited fields)
-curl http://localhost:9292/api/v1/payments/{id}
+curl http://localhost:9292/external/api/v1/payments/{id}
 
 # List payments
-curl http://localhost:9292/api/v1/payments?limit=10
+curl http://localhost:9292/external/api/v1/payments?limit=10
 ```
 
 **Field Visibility:** 6/11 fields (secure)
@@ -103,21 +98,21 @@ curl http://localhost:9292/api/v1/payments?limit=10
 
 ### Internal API (Service-to-Service)
 
-**Path:** `/api/internal/v1`
+**Path:** `/internal/api/v1`
 **Audience:** Internal microservices
 
 ```bash
 # Health check
-curl http://localhost:9292/api/internal/v1/health
+curl http://localhost:9292/internal/api/v1/health
 
 # Get payment (all fields + computed)
-curl http://localhost:9292/api/internal/v1/payments/{id}
+curl http://localhost:9292/internal/api/v1/payments/{id}
 
 # Confirm payment (internal only)
-curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/confirm
+curl -X POST http://localhost:9292/internal/api/v1/payments/{id}/confirm
 
 # Cancel payment (internal only)
-curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/cancel
+curl -X POST http://localhost:9292/internal/api/v1/payments/{id}/cancel
 ```
 
 **Field Visibility:** All fields + computed
@@ -126,19 +121,19 @@ curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/cancel
 
 ### Operator API (Admin/Support)
 
-**Path:** `/api/operator/v1`
+**Path:** `/operator/api/v1`
 **Audience:** Support staff, admin tools
 
 ```bash
 # Health check
-curl http://localhost:9292/api/operator/v1/health
+curl http://localhost:9292/operator/api/v1/health
 
 # Get payment with operator fields
-curl http://localhost:9292/api/operator/v1/payments/{id}
+curl http://localhost:9292/operator/api/v1/payments/{id}
 # Includes: customer_name, merchant_name, time_in_current_state
 
 # Full operation access
-curl -X POST http://localhost:9292/api/operator/v1/payments/{id}/confirm
+curl -X POST http://localhost:9292/operator/api/v1/payments/{id}/confirm
 ```
 
 **Field Visibility:** All fields + admin computed
@@ -168,7 +163,7 @@ end
 The new facet is **automatically**:
 - ✓ Discovered from `facets/` directory
 - ✓ Loaded into the registry
-- ✓ Mounted at `/api/partner/v1`
+- ✓ Mounted at `/partner/api/v1`
 - ✓ Documented in startup logs
 
 No manual loading, no config changes needed!
@@ -335,22 +330,22 @@ No route definitions, no serializer boilerplate, no duplication.
 
 ```bash
 # All facets respond
-curl http://localhost:9292/api/v1/health
-curl http://localhost:9292/api/internal/v1/health
-curl http://localhost:9292/api/operator/v1/health
+curl http://localhost:9292/external/api/v1/health
+curl http://localhost:9292/internal/api/v1/health
+curl http://localhost:9292/operator/api/v1/health
 
 # Field visibility working
-curl http://localhost:9292/api/v1/payments/{id}
+curl http://localhost:9292/external/api/v1/payments/{id}
 # Returns: id, amount, currency, status (6 fields)
 
-curl http://localhost:9292/api/internal/v1/payments/{id}
+curl http://localhost:9292/internal/api/v1/payments/{id}
 # Returns: all 11 fields + computed
 
 # Access control working
-curl -X POST http://localhost:9292/api/v1/payments/{id}/confirm
+curl -X POST http://localhost:9292/external/api/v1/payments/{id}/confirm
 # 404 - not available in external facet
 
-curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/confirm
+curl -X POST http://localhost:9292/internal/api/v1/payments/{id}/confirm
 # 200 - available in internal facet
 ```
 
@@ -360,7 +355,7 @@ curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/confirm
 
 Check auto-mount logs:
 ```
-I, INFO -- : ✓ external → /api/v1 (4 endpoints)
+I, INFO -- : ✓ external → /external/api/v1 (4 endpoints)
 ```
 
 ### Wrong path?

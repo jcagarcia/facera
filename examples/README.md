@@ -89,13 +89,13 @@ Then test the APIs:
 
 ```bash
 # Check health
-curl http://localhost:9292/api/v1/health
+curl http://localhost:9292/public/api/v1/health
 
-# List payments (external API)
-curl http://localhost:9292/api/v1/payments
+# List payments (public API)
+curl http://localhost:9292/public/api/v1/payments
 
 # Create a payment
-curl -X POST http://localhost:9292/api/v1/payments \
+curl -X POST http://localhost:9292/public/api/v1/payments \
   -H 'Content-Type: application/json' \
   -d '{
     "amount": 100.0,
@@ -104,8 +104,8 @@ curl -X POST http://localhost:9292/api/v1/payments \
     "customer_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
   }'
 
-# Confirm payment (internal API only - not available in external)
-curl -X POST http://localhost:9292/api/internal/v1/payments/{id}/confirm
+# Confirm payment (internal API only)
+curl -X POST http://localhost:9292/internal/api/v1/payments/{id}/confirm
 ```
 
 ## Server Structure
