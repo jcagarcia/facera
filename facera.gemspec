@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = "Facera allows you to define your system once as a semantic core and expose it through multiple facets, each tailored to different consumers while remaining logically consistent."
   spec.homepage      = "https://github.com/jcagarcia/facera"
   spec.license       = "MIT"
-  spec.required_ruby_version = ">= 2.7.0"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
