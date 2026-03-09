@@ -106,7 +106,54 @@ Facera.define_facet(:internal, core: :payment) do
 end
 ```
 
-### 3. Mount and Run
+### 3. Implement Business Logic
+
+Create an adapter to implement the actual logic:
+
+```ruby
+# adapters/payment_adapter.rb
+class PaymentAdapter
+  include Facera::Adapter
+
+  def create_payment(params)
+    # Your business logic here
+    Payment.create!(
+      amount: params[:amount],
+      currency: params[:currency],
+      merchant_id: params[:merchant_id],
+      customer_id: params[:customer_id],
+      status: :pending
+    )
+  end
+
+  def get_payment(params)
+    Payment.find(params[:id])
+  end
+
+  def confirm_payment(params)
+    payment = Payment.find(params[:id])
+    payment.update!(status: :confirmed, confirmed_at: Time.now)
+
+    # Send confirmation email
+    PaymentMailer.confirmation(payment).deliver_later
+
+    payment
+  end
+end
+```
+
+Or use inline blocks for simple logic:
+
+```ruby
+capability :simple_action, type: :action do
+  execute do |params|
+    # Simple inline logic
+    { result: "done" }
+  end
+end
+```
+
+### 4. Mount and Run
 
 ```ruby
 # config.ru
@@ -169,6 +216,7 @@ Comprehensive documentation available in the [wiki](https://github.com/jcagarcia
 - **[Core Concepts](https://github.com/jcagarcia/facera/wiki/Core-Concepts)** - Understanding cores, facets, and projections
 - **[Defining Cores](https://github.com/jcagarcia/facera/wiki/Defining-Cores)** - Entities, capabilities, and invariants
 - **[Defining Facets](https://github.com/jcagarcia/facera/wiki/Defining-Facets)** - Field visibility and capability access
+- **[Implementing Business Logic](https://github.com/jcagarcia/facera/wiki/Implementing-Business-Logic)** - Adapters and execute blocks
 - **[API Generation](https://github.com/jcagarcia/facera/wiki/API-Generation)** - Auto-generated REST endpoints
 - **[Auto-Mounting](https://github.com/jcagarcia/facera/wiki/Auto-Mounting)** - Convention-based discovery
 - **[Configuration](https://github.com/jcagarcia/facera/wiki/Configuration)** - Authentication, paths, and feature flags
@@ -185,6 +233,8 @@ Comprehensive documentation available in the [wiki](https://github.com/jcagarcia
 your_app/
 ├── cores/
 │   └── payment_core.rb       # Domain model
+├── adapters/
+│   └── payment_adapter.rb    # Business logic
 ├── facets/
 │   ├── external_facet.rb     # Public API
 │   ├── internal_facet.rb     # Service API

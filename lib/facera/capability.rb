@@ -1,7 +1,8 @@
 module Facera
   class Capability
     attr_reader :name, :type, :entity_name, :required_params, :optional_params,
-                :preconditions, :validations, :transitions, :field_setters, :action_name
+                :preconditions, :validations, :transitions, :field_setters, :action_name,
+                :execute_block
 
     VALID_TYPES = [:create, :get, :update, :delete, :list, :action].freeze
 
@@ -16,6 +17,7 @@ module Facera
       @transitions = []
       @field_setters = {}
       @action_name = nil
+      @execute_block = nil
 
       validate_type!
     end
@@ -58,6 +60,14 @@ module Facera
 
     def returns(type)
       @return_type = type.to_sym
+    end
+
+    def execute(&block)
+      @execute_block = block
+    end
+
+    def has_execute_block?
+      !@execute_block.nil?
     end
 
     def filterable(*param_names)

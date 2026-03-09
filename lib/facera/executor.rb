@@ -69,12 +69,59 @@ module Facera
     end
 
     def execute_capability
-      # This is a placeholder - in a real implementation, this would:
-      # 1. Call a repository/service to perform the action
-      # 2. Apply field setters from the capability
-      # 3. Handle state transitions
+      # Priority 1: Execute block defined inline
+      if capability.has_execute_block?
+        return execute_inline_block
+      end
 
-      # For now, we'll return a mock result based on capability type
+      # Priority 2: Call adapter if registered
+      adapter = AdapterRegistry.get(facet.core.name)
+      if adapter
+        return execute_adapter(adapter)
+      end
+
+      # Fallback: Mock implementation
+      execute_mock_implementation
+    end
+
+    def execute_inline_block
+      # Execute the block defined in the capability
+      context = build_context
+      result = context.instance_exec(params, &capability.execute_block)
+
+      # Apply field setters if result is a hash
+      if result.is_a?(Hash) && capability.field_setters.any?
+        capability.field_setters.each do |field, value|
+          result[field] = value.is_a?(Proc) ? value.call : value
+        end
+      end
+
+      result
+    end
+
+    def execute_adapter(adapter_class)
+      adapter_instance = adapter_class.new
+
+      # Call the appropriate adapter method
+      case capability.type
+      when :create
+        adapter_instance.send("create_#{capability.entity_name}", params)
+      when :get
+        adapter_instance.send("get_#{capability.entity_name}", params)
+      when :list
+        adapter_instance.send("list_#{capability.entity_name}s", params)
+      when :action
+        # For actions, call the method by capability name
+        adapter_instance.send(capability.name, params)
+      when :update
+        adapter_instance.send("update_#{capability.entity_name}", params)
+      when :delete
+        adapter_instance.send("delete_#{capability.entity_name}", params)
+      end
+    end
+
+    def execute_mock_implementation
+      # Fallback mock implementation (for testing/prototyping)
       case capability.type
       when :create
         create_result

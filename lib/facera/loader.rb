@@ -9,6 +9,7 @@ module Facera
 
     def load_all!
       load_cores!
+      load_adapters!
       load_facets!
     end
 
@@ -24,6 +25,38 @@ module Facera
       end
 
       core_files.count
+    end
+
+    def load_adapters!
+      adapter_files = discover_files('adapters')
+
+      if adapter_files.any?
+        @logger.info "🔌 Loading adapters..."
+        adapter_files.each do |file|
+          require file
+
+          # Auto-register adapter if it matches a core
+          adapter_name = File.basename(file, '.rb')
+          core_name = adapter_name.gsub(/_adapter$/, '').to_sym
+
+          # Try to find the adapter class
+          adapter_class_name = adapter_name.split('_').map(&:capitalize).join
+
+          if Object.const_defined?(adapter_class_name)
+            adapter_class = Object.const_get(adapter_class_name)
+
+            # Check if matching core exists
+            if Registry.cores[core_name]
+              AdapterRegistry.register(core_name, adapter_class)
+              @logger.info "  ✓ #{File.basename(file, '.rb')} → linked to :#{core_name} core"
+            else
+              @logger.warn "  ⚠ #{File.basename(file, '.rb')} → no matching :#{core_name} core found"
+            end
+          end
+        end
+      end
+
+      adapter_files.count
     end
 
     def load_facets!
@@ -103,6 +136,11 @@ module Facera
     def load_cores!(load_paths: nil)
       loader = Loader.new(load_paths: load_paths)
       loader.load_cores!
+    end
+
+    def load_adapters!(load_paths: nil)
+      loader = Loader.new(load_paths: load_paths)
+      loader.load_adapters!
     end
 
     def load_facets!(load_paths: nil)

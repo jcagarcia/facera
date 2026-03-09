@@ -28,12 +28,13 @@ module Facera
     end
 
     def discover_definitions
-      # Use Facera's loader to auto-discover cores and facets
+      # Use Facera's loader to auto-discover cores, adapters, and facets
       loader = Loader.new(logger: @logger)
       loader.load_all!
 
       @logger.info "\n📊 Found:"
       @logger.info "  Cores: #{Registry.cores.count}"
+      @logger.info "  Adapters: #{AdapterRegistry.all.count}"
       @logger.info "  Facets: #{Registry.facets.count}"
     end
 
