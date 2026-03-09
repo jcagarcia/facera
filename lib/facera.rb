@@ -1,5 +1,6 @@
 require_relative "facera/version"
 require_relative "facera/registry"
+require_relative "facera/context"
 require_relative "facera/attribute"
 require_relative "facera/entity"
 require_relative "facera/invariant"

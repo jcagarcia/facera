@@ -217,7 +217,7 @@ module Facera
 
     def build_context(data = {})
       # Create a context object with data that can be used in blocks
-      OpenStruct.new(data.merge(params).merge(context))
+      Context.new(data.merge(params).merge(context))
     end
 
     def context_eval(&block)
@@ -263,5 +263,3 @@ module Facera
     end
   end
 end
-
-require 'ostruct'

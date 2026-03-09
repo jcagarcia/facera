@@ -7,6 +7,7 @@ Facera is a Ruby framework for building **multi-facet APIs** from a single seman
 <img src="img/facera.png" alt="Facera logo" width="250"/>
 
 [![Gem Version](https://badge.fury.io/rb/facera.svg)](https://badge.fury.io/rb/facera)
+[![Ruby CI](https://github.com/jcagarcia/facera/actions/workflows/ruby.yml/badge.svg)](https://github.com/jcagarcia/facera/actions/workflows/ruby.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ---

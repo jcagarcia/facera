@@ -78,9 +78,9 @@ module Facera
           private
 
           def self.build_computation_context(obj, options)
-            # Convert to OpenStruct to allow easy field access in blocks
+            # Convert to Context to allow easy field access in blocks
             data = obj.is_a?(Hash) ? obj : {}
-            OpenStruct.new(data.merge(options[:context] || {}))
+            Facera::Context.new(data.merge(options[:context] || {}))
           end
         end
       end
