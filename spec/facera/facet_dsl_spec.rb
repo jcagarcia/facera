@@ -54,11 +54,11 @@ RSpec.describe "Facet DSL" do
       expect(facet.core_name).to eq(:payment)
     end
 
-    it "registers the facet in the registry" do
+    it "registers the facet in the registry under a composite key" do
       Facera.define_facet(:external, core: :payment) do
       end
 
-      expect(Facera.facets).to have_key(:external)
+      expect(Facera.facets).to have_key(:"external:payment")
     end
 
     it "can access the core" do

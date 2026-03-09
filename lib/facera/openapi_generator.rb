@@ -1,13 +1,11 @@
 module Facera
   class OpenAPIGenerator
-    attr_reader :facet_name, :facet, :core
+    attr_reader :audience_name, :facets
 
-    def initialize(facet_name)
-      @facet_name = facet_name
-      @facet = Registry.facets[facet_name]
-      raise "Facet #{facet_name} not found" unless @facet
-      @core = Registry.cores[@facet.core_name]
-      raise "Core #{@facet.core_name} not found" unless @core
+    def initialize(audience_name)
+      @audience_name = audience_name.to_sym
+      @facets = Registry.facet_groups[@audience_name]
+      raise "Audience #{audience_name} not found" unless @facets&.any?
     end
 
     def generate
@@ -23,9 +21,10 @@ module Facera
     private
 
     def info_section
+      core_names = @facets.map { |f| f.core_name.to_s }.join(', ')
       {
-        title: "#{@facet_name.to_s.capitalize} API",
-        description: @facet.description || "#{@facet_name} facet of #{@core.name} core",
+        title: "#{@audience_name.to_s.capitalize} API",
+        description: "#{@audience_name} audience API covering: #{core_names}",
         version: Facera::VERSION,
         contact: {
           name: 'Facera Framework'
@@ -36,11 +35,11 @@ module Facera
     def servers_section
       config = Facera.configuration
       base_path = config.base_path
-      facet_path = config.path_for_facet(@facet_name)
+      facet_path = config.path_for_facet(@audience_name)
 
       [{
         url: "#{base_path}#{facet_path}",
-        description: "#{@facet_name.to_s.capitalize} API"
+        description: "#{@audience_name.to_s.capitalize} API"
       }]
     end
 
@@ -48,6 +47,7 @@ module Facera
       paths = {}
 
       # Health endpoint
+      core_names = @facets.map { |f| f.core_name.to_s }
       paths['/health'] = {
         get: {
           summary: 'Health check',
@@ -61,8 +61,8 @@ module Facera
                     type: 'object',
                     properties: {
                       status: { type: 'string', example: 'ok' },
-                      facet: { type: 'string', example: @facet_name.to_s },
-                      core: { type: 'string', example: @core.name.to_s },
+                      audience: { type: 'string', example: @audience_name.to_s },
+                      cores: { type: 'array', items: { type: 'string' }, example: core_names },
                       timestamp: { type: 'string', format: 'date-time' }
                     }
                   }
@@ -73,45 +73,50 @@ module Facera
         }
       }
 
-      # Entity endpoints
-      @facet.field_visibilities.each do |entity_name, visibility|
-        entity = @core.entities[entity_name]
+      # Entity endpoints — one facet per core
+      @facets.each do |facet|
+        core = Registry.cores[facet.core_name]
+        next unless core
 
-        # Collection endpoints
-        collection_path = "/#{entity_name}s"
-        paths[collection_path] = {}
+        facet.field_visibilities.each do |entity_name, visibility|
+          entity = core.entities[entity_name]
 
-        # POST (create)
-        if capability_allowed?("create_#{entity_name}")
-          paths[collection_path][:post] = create_operation(entity_name, entity, visibility)
-        end
+          # Collection endpoints
+          collection_path = "/#{entity_name}s"
+          paths[collection_path] ||= {}
 
-        # GET (list)
-        if capability_allowed?("list_#{entity_name}s")
-          paths[collection_path][:get] = list_operation(entity_name, entity, visibility)
-        end
+          # POST (create)
+          if facet_capability_allowed?(facet, "create_#{entity_name}")
+            paths[collection_path][:post] = create_operation(entity_name, entity, visibility)
+          end
 
-        # Single resource endpoints
-        resource_path = "/#{entity_name}s/{id}"
-        paths[resource_path] = {}
+          # GET (list)
+          if facet_capability_allowed?(facet, "list_#{entity_name}s")
+            paths[collection_path][:get] = list_operation(entity_name, entity, visibility)
+          end
 
-        # GET (retrieve)
-        if capability_allowed?("get_#{entity_name}")
-          paths[resource_path][:get] = get_operation(entity_name, entity, visibility)
-        end
+          # Single resource endpoints
+          resource_path = "/#{entity_name}s/{id}"
+          paths[resource_path] ||= {}
 
-        # Action endpoints
-        @core.capabilities.each do |cap_name, capability|
-          next unless capability.type == :action
-          next unless capability.entity == entity_name
-          next unless capability_allowed?(cap_name)
+          # GET (retrieve)
+          if facet_capability_allowed?(facet, "get_#{entity_name}")
+            paths[resource_path][:get] = get_operation(entity_name, entity, visibility)
+          end
 
-          action_name = cap_name.to_s.sub("#{entity_name}_", '')
-          action_path = "/#{entity_name}s/{id}/#{action_name}"
+          # Action endpoints
+          core.capabilities.each do |cap_name, capability|
+            next unless capability.type == :action
+            next unless capability.entity_name == entity_name
+            next unless facet_capability_allowed?(facet, cap_name)
 
-          paths[action_path] = {
-            post: action_operation(cap_name, capability, entity, visibility)
-          }
+            action_name = cap_name.to_s.sub("#{entity_name}_", '')
+            action_path = "/#{entity_name}s/{id}/#{action_name}"
+
+            paths[action_path] = {
+              post: action_operation(cap_name, capability, entity, visibility)
+            }
+          end
         end
       end
 
@@ -193,11 +198,11 @@ module Facera
     end
 
     def action_operation(cap_name, capability, entity, visibility)
-      action_name = cap_name.to_s.sub("#{capability.entity}_", '')
+      action_name = cap_name.to_s.sub("#{capability.entity_name}_", '')
 
       {
-        summary: "#{action_name.capitalize} a #{capability.entity}",
-        tags: [capability.entity.to_s.capitalize],
+        summary: "#{action_name.capitalize} a #{capability.entity_name}",
+        tags: [capability.entity_name.to_s.capitalize],
         parameters: [
           { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }
         ],
@@ -217,10 +222,10 @@ module Facera
         } : nil,
         responses: {
           '200' => {
-            description: "#{capability.entity.to_s.capitalize} #{action_name}d successfully",
+            description: "#{capability.entity_name.to_s.capitalize} #{action_name}d successfully",
             content: {
               'application/json' => {
-                schema: response_schema(capability.entity, entity, visibility)
+                schema: response_schema(capability.entity_name, entity, visibility)
               }
             }
           },
@@ -307,8 +312,8 @@ module Facera
       }
     end
 
-    def capability_allowed?(cap_name)
-      @facet.capability_allowed?(cap_name.to_sym)
+    def facet_capability_allowed?(facet, cap_name)
+      facet.capability_allowed?(cap_name.to_sym)
     end
 
     def components_section
@@ -324,13 +329,13 @@ module Facera
     end
 
     class << self
-      def for_facet(facet_name)
-        new(facet_name).generate
+      def for_facet(audience_name)
+        new(audience_name).generate
       end
 
       def generate_all
-        Registry.facets.keys.map do |facet_name|
-          [facet_name, for_facet(facet_name)]
+        Registry.facet_groups.map do |audience_name, _facets|
+          [audience_name, for_facet(audience_name)]
         end.to_h
       end
     end

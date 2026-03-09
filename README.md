@@ -16,21 +16,6 @@ Facera is a Ruby framework for building **multi-facet APIs** from a single seman
 
 Modern systems expose APIs to many different consumers, leading to duplicated endpoints, inconsistent representations, and maintenance burden. **Facera solves this** by letting you define your system **once** as a semantic core, then automatically generate multiple consistent API facets.
 
-### Before Facera
-```
-3 separate APIs × 5 endpoints = 15 implementations
-+ 3 serializers + 3 auth systems + 3 test suites
-= ~2000 lines of code
-```
-
-### With Facera
-```
-1 core definition + 3 facet files + 1 config
-= ~300 lines of code
-```
-
-**85% less code, 100% consistency guaranteed.**
-
 ---
 
 ## Quick Start
@@ -78,34 +63,56 @@ end
 
 ### 2. Define Facets
 
+All audience facets for a core live in a single file named after the core:
+
 ```ruby
-# facets/external_facet.rb
-Facera.define_facet(:external, core: :payment) do
-  description "Public API for external clients"
+# facets/payment_facets.rb
+# Facet name = audience name only. The core is declared via core:.
+# Same audience name across cores → grouped into one API at /{audience}/{version}.
+
+Facera.define_facet(:public, core: :payment) do
+  description "Customer-facing payments API"
 
   expose :payment do
     fields :id, :amount, :currency, :status
   end
 
-  allow_capabilities :create_payment
+  allow_capabilities :create_payment, :get_payment
+  error_verbosity :minimal
+  rate_limit requests: 1000, per: :hour
 end
-```
 
-```ruby
-# facets/internal_facet.rb
 Facera.define_facet(:internal, core: :payment) do
-  description "Service-to-service API"
+  description "Internal service-to-service payments API"
 
   expose :payment do
     fields :all
-    computed :processing_time do |payment|
-      Time.now - payment.created_at
+    computed :age_in_seconds do
+      created_at ? (Time.now - created_at).to_i : 0
     end
   end
 
   allow_capabilities :all
+  error_verbosity :detailed
+end
+
+Facera.define_facet(:ops, core: :payment) do
+  description "Operator and support agent payments API"
+
+  expose :payment do
+    fields :all
+    computed :customer_display do
+      "Customer #{customer_id[0..7]}"
+    end
+  end
+
+  allow_capabilities :all
+  error_verbosity :detailed
+  audit_all_operations user: :current_agent
 end
 ```
+
+Name facets after the business audience consuming them. Facets sharing the same audience name across cores are automatically merged into one API — no configuration required.
 
 ### 3. Implement Business Logic
 
@@ -134,22 +141,7 @@ class PaymentAdapter
   def confirm_payment(params)
     payment = Payment.find(params[:id])
     payment.update!(status: :confirmed, confirmed_at: Time.now)
-
-    # Send confirmation email
-    PaymentMailer.confirmation(payment).deliver_later
-
     payment
-  end
-end
-```
-
-Or use inline blocks for simple logic:
-
-```ruby
-capability :simple_action, type: :action do
-  execute do |params|
-    # Simple inline logic
-    { result: "done" }
   end
 end
 ```
@@ -178,21 +170,66 @@ Start your server:
 rackup -p 9292
 ```
 
-**That's it!** You now have multiple APIs auto-generated:
+**That's it!** Facera auto-discovers everything and generates:
 
 ```bash
-# External API (limited fields)
-curl http://localhost:9292/api/v1/health
-curl -X POST http://localhost:9292/api/v1/payments \
+# Public API (customer-facing) — /payments and /refunds
+curl http://localhost:9292/api/public/v1/payments
+curl -X POST http://localhost:9292/api/public/v1/payments \
   -H 'Content-Type: application/json' \
   -d '{"amount": 100.0, "currency": "USD", ...}'
 
-# Internal API (all fields + computed)
+# Internal API (service-to-service) — /payments and /refunds
 curl http://localhost:9292/api/internal/v1/payments/:id
+
+# Ops API (operators and support agents) — /payments and /refunds
+curl http://localhost:9292/api/ops/v1/payments/:id
 
 # Introspection
 curl http://localhost:9292/api/facera/introspect
-curl http://localhost:9292/api/facera/openapi/external
+curl http://localhost:9292/api/facera/openapi/public
+```
+
+---
+
+## File Structure Convention
+
+The key insight: **one facets file per core**, containing all audience variants.
+
+```
+your_app/
+├── cores/
+│   ├── payment_core.rb           # Payment domain model
+│   └── refund_core.rb            # Refund domain model
+├── adapters/
+│   ├── payment_adapter.rb        # Payment business logic
+│   └── refund_adapter.rb         # Refund business logic
+├── facets/
+│   ├── payment_facets.rb         # public, internal, ops  (core: :payment)
+│   └── refund_facets.rb          # public, internal, ops   (core: :refund)
+└── config.ru
+```
+
+Facera auto-discovers everything by convention — no manual registration needed.
+
+---
+
+## Default Path Convention
+
+Facet paths are derived automatically from the audience name. Facets sharing the same audience name across cores are grouped into one mounted API:
+
+| Audience name   | Cores included    | Default path          | Resources              |
+|-----------------|-------------------|-----------------------|------------------------|
+| `public`    | payment + refund | `/api/public/v1`    | `/payments`, `/refunds` |
+| `internal`  | payment + refund | `/api/internal/v1`  | `/payments`, `/refunds` |
+| `ops`       | payment + refund | `/api/ops/v1`       | `/payments`, `/refunds` |
+
+You can override any audience path explicitly if needed:
+
+```ruby
+Facera.configure do |config|
+  config.facet_path :public, '/v2/public'  # custom override
+end
 ```
 
 ---
@@ -228,47 +265,12 @@ Comprehensive documentation available in the [wiki](https://github.com/jcagarcia
 
 ---
 
-## Example Structure
-
-```
-your_app/
-├── cores/
-│   └── payment_core.rb       # Domain model
-├── adapters/
-│   └── payment_adapter.rb    # Business logic
-├── facets/
-│   ├── external_facet.rb     # Public API
-│   ├── internal_facet.rb     # Service API
-│   └── operator_facet.rb     # Admin API
-└── config.ru                 # Rack config
-```
-
-Facera auto-discovers everything and generates:
-
-```
-GET  /api/v1/health
-POST /api/v1/payments
-GET  /api/v1/payments/:id
-
-GET  /api/internal/v1/health
-POST /api/internal/v1/payments
-GET  /api/internal/v1/payments/:id
-POST /api/internal/v1/payments/:id/confirm
-
-GET  /api/facera/introspect
-GET  /api/facera/cores
-GET  /api/facera/facets
-GET  /api/facera/openapi
-```
-
----
-
 ## Examples
 
 See the [examples/](examples/) directory for complete working examples:
 
 - **Phase Examples** - `01_core_dsl.rb` through `04_auto_mounting.rb`
-- **Runnable Server** - `examples/server/` with multiple facets
+- **Runnable Server** - `examples/server/` with multiple cores and facets
 
 Run the server:
 

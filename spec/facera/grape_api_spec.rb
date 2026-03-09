@@ -72,8 +72,8 @@ RSpec.describe "Grape API Integration" do
         expect(last_response.status).to eq(200)
         json = JSON.parse(last_response.body)
         expect(json['status']).to eq('ok')
-        expect(json['facet']).to eq('external')
-        expect(json['core']).to eq('payment')
+        expect(json['audience']).to eq('external')
+        expect(json['cores']).to include('payment')
       end
     end
 

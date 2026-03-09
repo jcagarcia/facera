@@ -35,27 +35,29 @@ module Facera
       @logger.info "\n📊 Found:"
       @logger.info "  Cores: #{Registry.cores.count}"
       @logger.info "  Adapters: #{AdapterRegistry.all.count}"
-      @logger.info "  Facets: #{Registry.facets.count}"
+      @logger.info "  Facets: #{Registry.facets.count} (#{Registry.facet_groups.count} audiences)"
     end
 
     def mount_facets
       @logger.info "\n🚀 Mounting facets:"
 
-      Registry.facets.each do |name, facet|
-        next unless @config.facet_enabled?(name)
+      Registry.facet_groups.each do |audience_name, facets|
+        next unless @config.facet_enabled?(audience_name)
 
-        path = "#{@config.base_path}#{@config.path_for_facet(name)}"
-        api = Grape::APIGenerator.for_facet(name)
+        path = "#{@config.base_path}#{@config.path_for_facet(audience_name)}"
+        api = Grape::APIGenerator.for_group(audience_name, facets)
 
         mount_api(api, path)
 
-        @mounted_facets[name] = {
+        @mounted_facets[audience_name] = {
           path: path,
           api: api,
-          endpoints: api.routes.count
+          endpoints: api.routes.count,
+          cores: facets.map(&:core_name)
         }
 
-        @logger.info "  ✓ #{name.to_s.ljust(15)} → #{path.ljust(25)} (#{api.routes.count} endpoints)"
+        cores_label = facets.map(&:core_name).join(', ')
+        @logger.info "  ✓ #{audience_name.to_s.ljust(12)} → #{path.ljust(30)} (#{api.routes.count} endpoints, cores: #{cores_label})"
       end
     end
 
@@ -91,9 +93,12 @@ module Facera
     end
 
     def mount_dashboard
-      # Dashboard will be implemented in a future phase
-      # For now, just log that it would be mounted
-      @logger.info "\n🎨 Dashboard: #{@config.base_path}/facera/ui (coming soon)"
+      require_relative 'dashboard_api'
+
+      mount_api(DashboardAPI, '/facera')
+
+      @logger.info "\n🎨 Dashboard:"
+      @logger.info "  ✓ Mounted at /facera"
     end
 
     def log_summary

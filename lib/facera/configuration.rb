@@ -51,19 +51,17 @@ module Facera
 
     private
 
+    # Derives a default path from the audience (facet group) name.
+    #
+    # Pattern: /{audience}/{version}
+    #
+    # Examples:
+    #   :checkout  -> /checkout/v1
+    #   :ledger    -> /ledger/v1
+    #   :support   -> /support/v1
+    #   :claims    -> /claims/v1
     def default_path_for(facet_name)
-      case facet_name.to_sym
-      when :external
-        "/#{@version}"
-      when :internal
-        "/internal/#{@version}"
-      when :operator
-        "/operator/#{@version}"
-      when :agent
-        "/agent/#{@version}"
-      else
-        "/#{facet_name}/#{@version}"
-      end
+      "/#{facet_name}/#{@version}"
     end
   end
 

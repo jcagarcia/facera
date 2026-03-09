@@ -15,7 +15,7 @@ module Facera
       def define_facet(name, core:, &block)
         facet = Facet.new(name, core: core)
         facet.instance_eval(&block) if block_given?
-        Registry.register_facet(name, facet)
+        Registry.register_facet(name, facet.core_name, facet)
         facet
       end
 

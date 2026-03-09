@@ -25,6 +25,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime dependencies
-  spec.add_dependency "grape", "~> 2.0"
+  spec.add_dependency "grape", "~> 3.0"
   spec.add_dependency "grape-entity", "~> 1.0"
 end

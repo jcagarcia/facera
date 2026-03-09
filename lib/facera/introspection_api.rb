@@ -31,6 +31,11 @@ module Facera
       Facera::Introspection.inspect_facets
     end
 
+    desc 'Get all audiences (facets grouped by audience name)'
+    get :audiences do
+      Facera::Introspection.inspect_audiences
+    end
+
     desc 'Get specific facet'
     params do
       requires :name, type: Symbol, desc: 'Facet name'

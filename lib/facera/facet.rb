@@ -72,7 +72,8 @@ module Facera
       visibility = field_visibility_for(entity_name)
       return [] unless visibility
 
-      entity = core.find_entity(entity_name)
+      entity = core.entities[entity_name.to_sym]
+      return [] unless entity
       visibility.all_visible_fields(entity)
     end
 

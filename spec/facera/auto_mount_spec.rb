@@ -41,13 +41,13 @@ RSpec.describe Facera::AutoMount do
       expect(config.facet_enabled?(:operator)).to be false
     end
 
-    it "provides default paths for common facets" do
+    it "derives default paths from audience name" do
       config = Facera.configuration
 
-      expect(config.path_for_facet(:external)).to eq('/v1')
-      expect(config.path_for_facet(:internal)).to eq('/internal/v1')
-      expect(config.path_for_facet(:operator)).to eq('/operator/v1')
-      expect(config.path_for_facet(:agent)).to eq('/agent/v1')
+      expect(config.path_for_facet(:checkout)).to eq('/checkout/v1')
+      expect(config.path_for_facet(:ledger)).to eq('/ledger/v1')
+      expect(config.path_for_facet(:support)).to eq('/support/v1')
+      expect(config.path_for_facet(:claims)).to eq('/claims/v1')
     end
 
     it "supports authentication handlers" do
@@ -71,15 +71,17 @@ RSpec.describe Facera::AutoMount do
   end
 
   describe "path generation" do
-    it "generates full paths with base_path" do
+    it "generates full paths with base_path using audience convention" do
       Facera.configure do |config|
         config.base_path = '/api'
         config.version = 'v1'
       end
 
       config = Facera.configuration
-      expect("#{config.base_path}#{config.path_for_facet(:external)}").to eq('/api/v1')
-      expect("#{config.base_path}#{config.path_for_facet(:internal)}").to eq('/api/internal/v1')
+      expect("#{config.base_path}#{config.path_for_facet(:checkout)}").to eq('/api/checkout/v1')
+      expect("#{config.base_path}#{config.path_for_facet(:ledger)}").to eq('/api/ledger/v1')
+      expect("#{config.base_path}#{config.path_for_facet(:support)}").to eq('/api/support/v1')
+      expect("#{config.base_path}#{config.path_for_facet(:claims)}").to eq('/api/claims/v1')
     end
 
     it "uses custom paths when provided" do

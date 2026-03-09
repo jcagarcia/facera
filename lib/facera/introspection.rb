@@ -6,8 +6,35 @@ module Facera
           version: Facera::VERSION,
           cores: inspect_cores,
           facets: inspect_facets,
+          audiences: inspect_audiences,
           mounted: inspect_mounted
         }
+      end
+
+      def inspect_audiences
+        config = Facera.configuration
+        Registry.facet_groups.map do |audience_name, facets|
+          path = "#{config.base_path}#{config.path_for_facet(audience_name)}"
+          {
+            name: audience_name,
+            path: path,
+            cores: facets.map(&:core_name),
+            resources: facets.flat_map { |f| f.field_visibilities.keys.map { |e| e.to_s.pluralize } }.uniq,
+            facets: facets.map { |f|
+              {
+                core: f.core_name,
+                description: f.description,
+                capabilities: {
+                  allowed: f.capability_access.allowed_capabilities,
+                  denied: f.capability_access.denied_capabilities,
+                  total: f.capability_access.allowed_capabilities == :all ? 'all' : f.capability_access.allowed_capabilities.count
+                },
+                error_verbosity: f.error_verbosity,
+                audit_logging: f.audit_enabled
+              }
+            }
+          }
+        end
       end
 
       def inspect_cores
@@ -43,7 +70,7 @@ module Facera
                 sets_fields: cap.field_setters
               }.compact
             },
-            invariants: core.invariants.map { |inv|
+            invariants: core.invariants.map { |_inv_name, inv|
               {
                 name: inv.name,
                 description: inv.description
@@ -54,9 +81,9 @@ module Facera
       end
 
       def inspect_facets
-        Registry.facets.map do |name, facet|
+        Registry.facets.map do |_key, facet|
           {
-            name: name,
+            name: facet.name,
             core: facet.core_name,
             description: facet.description,
             exposures: facet.field_visibilities.map { |entity_name, visibility|
@@ -101,10 +128,12 @@ module Facera
       end
 
       def inspect_facet(facet_name)
-        facet = Registry.facets[facet_name]
+        key = facet_name.to_sym
+        # Try exact composite key, then audience name scan
+        facet = Registry.facets[key] || Registry.facets.values.find { |f| f.name == key }
         return nil unless facet
 
-        inspect_facets.find { |f| f[:name] == facet_name }
+        inspect_facets.find { |f| f[:name] == facet.name && f[:core] == facet.core_name }
       end
     end
   end
